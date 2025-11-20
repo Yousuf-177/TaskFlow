@@ -1,0 +1,6 @@
+frontend/node_modules
+frontend/.vite
+backend/node_modules
+*/.env
+backend/backend.zip
+backend/uploads.zip
