@@ -19,15 +19,17 @@ router.put("/profile", protect, updateUserProfile);
 
 // Upload image → Cloudinary
 router.post("/upload-image", upload.single("image"), async (req, res) => {
+  
   if (!req.file) {
     return res.status(400).json({ message: "No file uploaded" });
   }
+  const isPdf = req.file.mimetype === "application/pdf";
 
   try {
     // Stream the in-memory buffer to Cloudinary
     const result = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
-        { folder: "taskflow/profiles", resource_type: "auto" },
+        { folder: "taskflow/profiles", resource_type: isPdf ? "raw" : "image" },
         (error, result) => {
           if (error) reject(error);
           else resolve(result);
