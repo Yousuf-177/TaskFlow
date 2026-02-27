@@ -1,10 +1,11 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { LuEye, LuEyeOff, LuSquareCheck, LuCamera } from "react-icons/lu";
+import { LuEye, LuEyeOff, LuCamera } from "react-icons/lu";
 import toast from "react-hot-toast";
 import axiosInstance from "../../utils/axiosInstance";
 import { API_PATHS } from "../../utils/apiPaths";
 import { useUser } from "../../context/UserContext";
+import loginImg from "../../assets/login_img.png";
 import {
   getPasswordStrength,
   getPasswordStrengthLabel,
@@ -14,9 +15,24 @@ import {
 } from "../../utils/helper";
 
 const SignUp = () => {
-  const { login } = useUser();
+  const { login, user } = useUser();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+  const [mounted, setMounted] = useState(false);
+
+  // Redirect if already signed in
+  useEffect(() => {
+    if (user) {
+      navigate(user.role === "admin" ? "/admin/dashboard" : "/user/dashboard", {
+        replace: true,
+      });
+    }
+  }, [user, navigate]);
+
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), 10);
+    return () => clearTimeout(t);
+  }, []);
 
   const [form, setForm] = useState({
     name: "",
@@ -40,13 +56,9 @@ const SignUp = () => {
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    // Show local preview immediately
     const reader = new FileReader();
     reader.onload = (ev) => setImagePreview(ev.target.result);
     reader.readAsDataURL(file);
-
-    // Upload to server
     const fd = new FormData();
     fd.append("image", file);
     setUploading(true);
@@ -61,7 +73,7 @@ const SignUp = () => {
       setForm((prev) => ({ ...prev, profileImage: data.ImageURL }));
       toast.success("Profile photo uploaded");
     } catch {
-      toast.error("Photo upload failed — you can still register without one");
+      toast.error("Photo upload failed");
       setImagePreview(null);
     } finally {
       setUploading(false);
@@ -107,44 +119,151 @@ const SignUp = () => {
     <div
       style={{
         minHeight: "100vh",
-        background:
-          "linear-gradient(135deg, var(--slate-950) 0%, var(--slate-800) 100%)",
         display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "1.5rem",
+        background: "var(--slate-950)",
+        overflow: "hidden",
       }}
     >
+      {/* ── LEFT: Image Panel ── */}
       <div
         style={{
-          width: "100%",
-          maxWidth: "440px",
-          background: "var(--slate-800)",
-          border: "1px solid var(--border)",
-          borderRadius: "var(--radius-xl)",
-          boxShadow: "var(--shadow-lg)",
-          padding: "2.5rem 2rem",
-          animation: "fadeIn 250ms ease",
+          flex: 1,
+          position: "relative",
+          overflow: "hidden",
+          transform: mounted ? "translateX(0)" : "translateX(-40px)",
+          opacity: mounted ? 1 : 0,
+          transition:
+            "transform 0.55s cubic-bezier(.22,.68,0,1.2), opacity 0.45s ease",
         }}
       >
-        {/* Brand */}
-        <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
+        {/* Gradient overlay */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background:
+              "linear-gradient(225deg, rgba(13,148,136,0.25) 0%, rgba(8,11,18,0.6) 100%)",
+            zIndex: 1,
+          }}
+        />
+        <img
+          src={loginImg}
+          alt="TaskFlow illustration"
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            display: "block",
+            transform: mounted ? "scale(1)" : "scale(1.06)",
+            transition: "transform 0.7s cubic-bezier(.22,.68,0,1.1)",
+          }}
+        />
+
+        {/* Stats card */}
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: mounted
+              ? "translate(-50%, -50%)"
+              : "translate(-50%, calc(-50% + 20px))",
+            zIndex: 2,
+            background: "rgba(15,17,23,0.75)",
+            backdropFilter: "blur(14px)",
+            borderRadius: "16px",
+            padding: "1.75rem 2rem",
+            border: "1px solid rgba(255,255,255,0.08)",
+            textAlign: "center",
+            minWidth: "220px",
+            opacity: mounted ? 1 : 0,
+            transition: "transform 0.65s 0.15s ease, opacity 0.5s 0.15s ease",
+          }}
+        >
           <div
             style={{
-              width: "48px",
-              height: "48px",
-              background: "var(--teal-500)",
-              borderRadius: "12px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              margin: "0 auto 1rem",
-              boxShadow: "0 4px 14px rgba(20,184,166,0.35)",
+              fontSize: "2.5rem",
+              fontWeight: 800,
+              color: "var(--teal-400)",
+              lineHeight: 1,
             }}
           >
-            <LuSquareCheck size={24} color="white" />
+            10K+
           </div>
-          <h1 style={{ fontSize: "1.5rem", marginBottom: "0.25rem" }}>
+          <div
+            style={{
+              fontSize: "0.8rem",
+              color: "var(--text-faint)",
+              marginTop: "0.4rem",
+            }}
+          >
+            Tasks completed daily
+          </div>
+          <div
+            style={{
+              height: "1px",
+              background: "rgba(255,255,255,0.08)",
+              margin: "1rem 0",
+            }}
+          />
+          <div style={{ display: "flex", justifyContent: "space-around" }}>
+            {[
+              ["98%", "Satisfaction"],
+              ["500+", "Teams"],
+              ["24/7", "Support"],
+            ].map(([val, label]) => (
+              <div key={label} style={{ textAlign: "center" }}>
+                <div
+                  style={{
+                    fontSize: "1.1rem",
+                    fontWeight: 700,
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  {val}
+                </div>
+                <div
+                  style={{
+                    fontSize: "0.65rem",
+                    color: "var(--text-faint)",
+                    marginTop: "2px",
+                  }}
+                >
+                  {label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── RIGHT: Form Panel ── */}
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          padding: "2rem 3rem",
+          background: "var(--slate-900)",
+          overflowY: "auto",
+          transform: mounted ? "translateX(0)" : "translateX(40px)",
+          opacity: mounted ? 1 : 0,
+          transition:
+            "transform 0.55s cubic-bezier(.22,.68,0,1.2), opacity 0.45s ease",
+        }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            textAlign: "center",
+            marginBottom: "1.5rem",
+            width: "100%",
+            maxWidth: "380px",
+          }}
+        >
+          <h1 style={{ fontSize: "1.65rem", marginBottom: "0.2rem" }}>
             Create account
           </h1>
           <p
@@ -158,25 +277,23 @@ const SignUp = () => {
           </p>
         </div>
 
-        {/* ── Profile Photo Picker ── */}
+        {/* Avatar picker */}
         <div
           style={{
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            marginBottom: "1.5rem",
+            marginBottom: "1.25rem",
           }}
         >
           <div
             style={{ position: "relative", cursor: "pointer" }}
             onClick={() => fileInputRef.current?.click()}
-            title="Click to upload profile photo"
           >
-            {/* Avatar circle */}
             <div
               style={{
-                width: "80px",
-                height: "80px",
+                width: "76px",
+                height: "76px",
                 borderRadius: "50%",
                 background: imagePreview ? "transparent" : avatarBg,
                 display: "flex",
@@ -184,20 +301,20 @@ const SignUp = () => {
                 justifyContent: "center",
                 overflow: "hidden",
                 border: "2px solid var(--border)",
-                transition: "border-color var(--transition-fast)",
+                transition: "border-color 0.2s",
                 flexShrink: 0,
               }}
             >
               {imagePreview ? (
                 <img
                   src={imagePreview}
-                  alt="Profile preview"
+                  alt="Preview"
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
               ) : (
                 <span
                   style={{
-                    fontSize: "1.5rem",
+                    fontSize: "1.4rem",
                     fontWeight: 700,
                     color: "var(--slate-900)",
                   }}
@@ -206,29 +323,27 @@ const SignUp = () => {
                 </span>
               )}
             </div>
-
-            {/* Camera overlay badge */}
             <div
               style={{
                 position: "absolute",
                 bottom: 0,
                 right: 0,
-                width: "26px",
-                height: "26px",
+                width: "24px",
+                height: "24px",
                 borderRadius: "50%",
                 background: uploading ? "var(--slate-600)" : "var(--teal-500)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                border: "2px solid var(--slate-800)",
-                transition: "background var(--transition-fast)",
+                border: "2px solid var(--slate-900)",
+                transition: "background 0.2s",
               }}
             >
               {uploading ? (
                 <div
                   style={{
-                    width: "10px",
-                    height: "10px",
+                    width: "9px",
+                    height: "9px",
                     borderRadius: "50%",
                     border: "1.5px solid transparent",
                     borderTopColor: "white",
@@ -236,21 +351,19 @@ const SignUp = () => {
                   }}
                 />
               ) : (
-                <LuCamera size={13} color="white" />
+                <LuCamera size={12} color="white" />
               )}
             </div>
           </div>
-
           <span
             style={{
-              marginTop: "0.5rem",
-              fontSize: "0.75rem",
+              marginTop: "0.375rem",
+              fontSize: "0.72rem",
               color: "var(--text-faint)",
             }}
           >
-            {uploading ? "Uploading…" : "Click to add photo (optional)"}
+            {uploading ? "Uploading…" : "Add photo (optional)"}
           </span>
-
           <input
             ref={fileInputRef}
             type="file"
@@ -260,11 +373,17 @@ const SignUp = () => {
           />
         </div>
 
+        {/* Form */}
         <form
           onSubmit={handleSubmit}
-          style={{ display: "flex", flexDirection: "column", gap: "1.125rem" }}
+          style={{
+            width: "100%",
+            maxWidth: "380px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "1rem",
+          }}
         >
-          {/* Full Name */}
           <div>
             <label htmlFor="name">Full Name</label>
             <input
@@ -277,7 +396,6 @@ const SignUp = () => {
             />
           </div>
 
-          {/* Email */}
           <div>
             <label htmlFor="email">Email Address</label>
             <input
@@ -290,7 +408,6 @@ const SignUp = () => {
             />
           </div>
 
-          {/* Password */}
           <div>
             <label htmlFor="password">Password</label>
             <div style={{ position: "relative" }}>
@@ -322,15 +439,13 @@ const SignUp = () => {
                 {showPassword ? <LuEyeOff size={16} /> : <LuEye size={16} />}
               </button>
             </div>
-
-            {/* Password strength bar */}
             {form.password && (
-              <div style={{ marginTop: "0.5rem" }}>
+              <div style={{ marginTop: "0.4rem" }}>
                 <div
                   style={{
                     display: "flex",
                     gap: "4px",
-                    marginBottom: "0.25rem",
+                    marginBottom: "0.2rem",
                   }}
                 >
                   {[1, 2, 3, 4].map((seg) => (
@@ -342,14 +457,14 @@ const SignUp = () => {
                         borderRadius: "2px",
                         background:
                           strength >= seg ? strengthColor : "var(--slate-600)",
-                        transition: "background var(--transition-base)",
+                        transition: "background 0.2s",
                       }}
                     />
                   ))}
                 </div>
                 <span
                   style={{
-                    fontSize: "0.7rem",
+                    fontSize: "0.68rem",
                     color: strengthColor,
                     fontWeight: 500,
                   }}
@@ -360,7 +475,6 @@ const SignUp = () => {
             )}
           </div>
 
-          {/* Admin Token */}
           <div>
             <label htmlFor="adminInviteToken">
               Admin Invite Token{" "}
@@ -392,7 +506,7 @@ const SignUp = () => {
             style={{
               width: "100%",
               justifyContent: "center",
-              padding: "0.75rem",
+              padding: "0.8rem",
               fontSize: "0.9375rem",
               marginTop: "0.25rem",
               opacity: loading || uploading ? 0.7 : 1,
@@ -405,10 +519,10 @@ const SignUp = () => {
 
         <p
           style={{
-            textAlign: "center",
-            marginTop: "1.5rem",
+            marginTop: "1.25rem",
             fontSize: "0.875rem",
             color: "var(--text-faint)",
+            textAlign: "center",
           }}
         >
           Already have an account?{" "}
@@ -417,10 +531,10 @@ const SignUp = () => {
             style={{
               color: "var(--teal-400)",
               textDecoration: "none",
-              fontWeight: 500,
+              fontWeight: 600,
             }}
           >
-            Sign in
+            ← Sign in
           </Link>
         </p>
       </div>
