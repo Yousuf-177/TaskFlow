@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { LuPlus, LuTrash2, LuUpload } from "react-icons/lu";
 import toast from "react-hot-toast";
 import DashboardLayout from "../../components/layouts/DashboardLayout";
+import Avatar from "../../components/ui/Avatar";
 import axiosInstance from "../../utils/axiosInstance";
 import { API_PATHS } from "../../utils/apiPaths";
 import { getInitials, getAvatarColor } from "../../utils/helper";
@@ -301,23 +302,11 @@ const CreateTask = () => {
                           transition: "all var(--transition-fast)",
                         }}
                       >
-                        <div
-                          style={{
-                            width: "32px",
-                            height: "32px",
-                            borderRadius: "50%",
-                            background: getAvatarColor(u.name),
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: "0.7rem",
-                            fontWeight: 700,
-                            color: "var(--slate-900)",
-                            flexShrink: 0,
-                          }}
-                        >
-                          {getInitials(u.name)}
-                        </div>
+                        <Avatar
+                          name={u.name || ""}
+                          profileImage={u.profileImage}
+                          size={32}
+                        />
                         <div>
                           <div
                             style={{

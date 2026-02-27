@@ -5,7 +5,7 @@ import DashboardLayout from "../../components/layouts/DashboardLayout";
 import DeleteAlert from "../../components/ui/DeleteAlert";
 import axiosInstance from "../../utils/axiosInstance";
 import { API_PATHS } from "../../utils/apiPaths";
-import { getInitials, getAvatarColor } from "../../utils/helper";
+import Avatar from "../../components/ui/Avatar";
 import moment from "moment";
 
 const RoleBadge = ({ role }) => (
@@ -189,23 +189,11 @@ const ManageUsers = () => {
                         gap: "0.75rem",
                       }}
                     >
-                      <div
-                        style={{
-                          width: "36px",
-                          height: "36px",
-                          borderRadius: "50%",
-                          background: getAvatarColor(user.name),
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: "0.75rem",
-                          fontWeight: 700,
-                          color: "var(--slate-900)",
-                          flexShrink: 0,
-                        }}
-                      >
-                        {getInitials(user.name)}
-                      </div>
+                      <Avatar
+                        name={user.name}
+                        profileImage={user.profileImage}
+                        size={36}
+                      />
                       <div>
                         <div
                           style={{

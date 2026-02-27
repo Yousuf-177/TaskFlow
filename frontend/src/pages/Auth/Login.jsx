@@ -26,7 +26,13 @@ const Login = () => {
     try {
       const { data } = await axiosInstance.post(API_PATHS.AUTH.LOGIN, form);
       login(
-        { _id: data._id, name: data.name, email: data.email, role: data.role },
+        {
+          _id: data._id,
+          name: data.name,
+          email: data.email,
+          role: data.role,
+          profileImage: data.profileImage,
+        },
         data.token,
       );
       if (data.role === "admin") navigate("/admin/dashboard");

@@ -14,12 +14,8 @@ import StatusBadge from "../../components/ui/StatusBadge";
 import DeleteAlert from "../../components/ui/DeleteAlert";
 import axiosInstance from "../../utils/axiosInstance";
 import { API_PATHS } from "../../utils/apiPaths";
-import {
-  formatDueDate,
-  isOverdue,
-  getInitials,
-  getAvatarColor,
-} from "../../utils/helper";
+import { formatDueDate, isOverdue } from "../../utils/helper";
+import Avatar from "../../components/ui/Avatar";
 
 const REPORT_PATH = "/report/export/tasks";
 
@@ -339,26 +335,16 @@ const ManageTasks = () => {
                       <td style={TD}>
                         <div style={{ display: "flex" }}>
                           {(task.assignedTo || []).slice(0, 3).map((u, i) => (
-                            <div
+                            <Avatar
                               key={u._id || i}
-                              title={u.name}
+                              name={u.name || ""}
+                              profileImage={u.profileImage}
+                              size={28}
                               style={{
-                                width: "28px",
-                                height: "28px",
-                                borderRadius: "50%",
-                                background: getAvatarColor(u.name || ""),
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontSize: "0.65rem",
-                                fontWeight: 700,
-                                color: "var(--slate-900)",
                                 marginLeft: i === 0 ? 0 : "-8px",
                                 border: "2px solid var(--slate-800)",
                               }}
-                            >
-                              {getInitials(u.name)}
-                            </div>
+                            />
                           ))}
                           {task.assignedTo?.length > 3 && (
                             <div

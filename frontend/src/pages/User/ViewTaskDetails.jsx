@@ -11,14 +11,10 @@ import toast from "react-hot-toast";
 import DashboardLayout from "../../components/layouts/DashboardLayout";
 import PriorityBadge from "../../components/ui/PriorityBadge";
 import StatusBadge from "../../components/ui/StatusBadge";
+import Avatar from "../../components/ui/Avatar";
 import axiosInstance from "../../utils/axiosInstance";
 import { API_PATHS } from "../../utils/apiPaths";
-import {
-  formatDueDate,
-  isOverdue,
-  getInitials,
-  getAvatarColor,
-} from "../../utils/helper";
+import { formatDueDate, isOverdue } from "../../utils/helper";
 
 const ViewTaskDetails = () => {
   const { id } = useParams();
@@ -586,23 +582,11 @@ const ViewTaskDetails = () => {
                       gap: "0.625rem",
                     }}
                   >
-                    <div
-                      style={{
-                        width: "30px",
-                        height: "30px",
-                        borderRadius: "50%",
-                        background: getAvatarColor(u.name || ""),
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "0.65rem",
-                        fontWeight: 700,
-                        color: "var(--slate-900)",
-                        flexShrink: 0,
-                      }}
-                    >
-                      {getInitials(u.name)}
-                    </div>
+                    <Avatar
+                      name={u.name || ""}
+                      profileImage={u.profileImage}
+                      size={30}
+                    />
                     <div>
                       <div
                         style={{

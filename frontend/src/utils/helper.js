@@ -128,3 +128,13 @@ export const getAvatarColor = (name = "") => {
     AVATAR_COLORS.length;
   return AVATAR_COLORS[index];
 };
+
+// ─── Profile Image URL ────────────────────────────────────────
+// Turns a relative /uploads/... path into a full backend URL.
+// If the URL is already absolute, returns it as-is.
+const BACKEND_URL = "http://localhost:8000";
+export const getAvatarUrl = (profileImage) => {
+  if (!profileImage) return null;
+  if (profileImage.startsWith("http")) return profileImage;
+  return `${BACKEND_URL}${profileImage}`;
+};
