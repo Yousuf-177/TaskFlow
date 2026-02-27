@@ -12,7 +12,7 @@ const generateToken = (userId) => {
 // @access PUBLIC
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, profilePic, adminInviteToken } = req.body;
+    const { name, email, password, profileImage, adminInviteToken } = req.body;
     // adminInviteToken if correct present then put role = admin
     if (!name || !email || !password) {
       return res.status(400).json({
@@ -30,7 +30,7 @@ const registerUser = async (req, res) => {
     }
 
     //Determine User Role : admin if adminInviteToken is Correct Otherwise Member
-
+    let role;
     if (
       adminInviteToken &&
       adminInviteToken === process.env.ADMIN_INVITE_TOKEN
@@ -51,7 +51,7 @@ const registerUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      profilePic,
+      profileImage,
       role,
     });
 
@@ -60,9 +60,8 @@ const registerUser = async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
-      password: user.password,
       role: user.role,
-      profilePic: user.profilePic,
+      profileImage: user.profileImage,
       message: "User Registered Successfully",
       token: generateToken(user._id),
     });
@@ -90,17 +89,18 @@ const loginUser = async (req, res) => {
     }
 
     // Validate Password
-    const isMatched = bcrypt.compare(password, user.password);
+    const isMatched = await bcrypt.compare(password, user.password);
     if (!isMatched) {
-      return res.status(402).json({ message: "Password is Incorrect" });
+      return res.status(401).json({ message: "Password is Incorrect" });
     }
 
-    res.status(201).json({
+    res.status(200).json({
       message: "Successfully Logged In",
       _id: user._id,
       name: user.name,
       email: user.email,
       role: user.role,
+      profileImage: user.profileImage,
       token: generateToken(user._id),
     });
   } catch (error) {
@@ -140,7 +140,7 @@ const updateUserProfile = async (req, res) => {
       const salt = bcrypt.genSalt(10);
       user.password = bcrypt.hash(req.user.password, salt);
     }
-    const updatedPassword = await user.save()
+    const updatedPassword = await user.save();
 
     res.status(200).json({
       message: "Successfully Profile Updated",

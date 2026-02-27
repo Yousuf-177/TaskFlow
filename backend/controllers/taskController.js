@@ -8,7 +8,8 @@ const getAllTasks = async (req, res) => {
   try {
     let tasks = [];
     if (req.user.role == "admin") {
-      tasks = await Task.find().populate(
+      // Admin only sees tasks they created
+      tasks = await Task.find({ createdBy: req.user._id }).populate(
         "assignedTo",
         "name email profileImage",
       );
@@ -54,11 +55,20 @@ const getTaskByID = async (req, res) => {
 // @access -
 const getDashboardData = async (req, res) => {
   try {
-    // Fetch Statistics
-    const totalTasks = await Task.countDocuments();
-    const PendingTasks = await Task.countDocuments({ status: "Pending" });
-    const CompletedTasks = await Task.countDocuments({ status: "Completed" });
+    const adminFilter = { createdBy: req.user._id };
+
+    // Fetch Statistics scoped to this admin's tasks
+    const totalTasks = await Task.countDocuments(adminFilter);
+    const PendingTasks = await Task.countDocuments({
+      ...adminFilter,
+      status: "Pending",
+    });
+    const CompletedTasks = await Task.countDocuments({
+      ...adminFilter,
+      status: "Completed",
+    });
     const OverDueTasks = await Task.countDocuments({
+      ...adminFilter,
       status: { $ne: "Completed" },
       dueDate: { $lt: new Date() },
     });
@@ -66,6 +76,7 @@ const getDashboardData = async (req, res) => {
     // For Ensuring all possible statuses are included
     const taskStatuses = ["Pending", "In Progress", "Completed"];
     const taskDistributionRaw = await Task.aggregate([
+      { $match: adminFilter },
       {
         $group: {
           _id: "$status",
@@ -73,10 +84,8 @@ const getDashboardData = async (req, res) => {
         },
       },
     ]);
-    // wants to count how many tasks exist for each known status (Pending, In Progress, Completed) and store the counts in an easy-to-use object.
     const taskDistribution = taskStatuses.reduce((acc, status) => {
       const formattedKey = status.replace(/\s+/g, "");
-      // This removes all spaces from the status string, so it can be used as a clean object key.
       acc[formattedKey] =
         taskDistributionRaw.find((item) => item._id === status)?.count || 0;
       return acc;
@@ -85,6 +94,7 @@ const getDashboardData = async (req, res) => {
     // For Ensuring all possible priorities are included
     const taskPriorities = ["Low", "Medium", "High"];
     const taskPriorityLevelRaw = await Task.aggregate([
+      { $match: adminFilter },
       {
         $group: {
           _id: "$priority",
@@ -99,9 +109,8 @@ const getDashboardData = async (req, res) => {
       return acc;
     }, {});
 
-    // Find 10 Recent Task
-
-    const recentTask = await Task.find()
+    // Find 10 Recent Tasks created by this admin
+    const recentTask = await Task.find(adminFilter)
       .sort({ createdAt: -1 })
       .limit(10)
       .select("title dueDate priority status createdAt");
@@ -271,7 +280,16 @@ const createTask = async (req, res) => {
 const updateTask = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
-    if (!task) return res.status(201).json({ message: "No Task Found" });
+    if (!task) return res.status(404).json({ message: "No Task Found" });
+
+    // Only the admin who created the task can update it
+    if (
+      req.user.role === "admin" &&
+      task.createdBy.toString() !== req.user._id.toString()
+    )
+      return res
+        .status(403)
+        .json({ message: "Not authorized to edit this task" });
 
     task.title = req.body.title || task.title;
     task.description = req.body.description || task.description;
@@ -302,7 +320,16 @@ const deleteTask = async (req, res) => {
     const task = await Task.findById(req.params.id);
     if (!task) return res.status(403).json({ message: "No Task Found" });
 
-    await Task.deleteOne(task._id);
+    // Only the admin who created the task can delete it
+    if (
+      req.user.role === "admin" &&
+      task.createdBy.toString() !== req.user._id.toString()
+    )
+      return res
+        .status(403)
+        .json({ message: "Not authorized to delete this task" });
+
+    await Task.deleteOne({ _id: task._id });
     res.status(201).json({ message: "Task Deleted Successfully", task });
   } catch (error) {
     return res.status(500).json({

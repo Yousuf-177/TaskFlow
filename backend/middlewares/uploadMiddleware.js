@@ -1,17 +1,10 @@
 const multer = require("multer");
 
-// Configure Storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
-});
+// Use memory storage — file stays as a Buffer in req.file.buffer
+// so we can stream it to Cloudinary without touching the disk.
+const storage = multer.memoryStorage();
 
-// File Filter
-
+// File Filter — allow images and PDFs
 const fileFilter = (req, file, cb) => {
   const allowedType = [
     "image/jpg",
