@@ -107,9 +107,13 @@ const Sidebar = () => {
           borderBottom: "1px solid var(--border)",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "0.625rem" }}>
+        <div
+          onClick={() => navigate("/")}
+          style={{ cursor: "pointer",display: "flex", alignItems: "center", gap: "0.625rem" }}
+        >
           <div
             style={{
+              
               width: "32px",
               height: "32px",
               background: "var(--teal-500)",
