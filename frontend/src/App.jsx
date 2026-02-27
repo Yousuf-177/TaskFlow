@@ -12,6 +12,7 @@ import PrivateRoute from "./routes/PrivateRoute";
 // Auth Pages
 import Login from "./pages/Auth/Login";
 import SignUp from "./pages/Auth/SignUp";
+import LandingPage from "./pages/Landing/LandingPage";
 
 // Admin Pages
 import AdminDashboard from "./pages/Admin/Dashboard";
@@ -29,11 +30,12 @@ const App = () => {
     <UserProvider>
       <Router>
         <Routes>
-          {/* Root redirect */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          {/* Landing */}
+          <Route path="/" element={<LandingPage />} />
 
           {/* Auth Routes */}
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
           <Route path="/signUp" element={<SignUp />} />
 
           {/* Admin Routes */}

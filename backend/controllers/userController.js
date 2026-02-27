@@ -27,16 +27,16 @@ const getUsers = async (req, res) => {
           status: "Completed",
         });
 
-        return { 
+        return {
           ...user._doc, //include all existing user data
           PendingTask,
           InProgressTask,
-          CompletedTask
+          CompletedTask,
         };
-      })
+      }),
     );
 
-    return res.json(usersWithTasksCount)
+    return res.json(usersWithTasksCount);
   } catch (error) {
     return res
       .status(500)
@@ -50,11 +50,9 @@ const getUsers = async (req, res) => {
 
 const getUserById = async (req, res) => {
   try {
-
-    const user = await User.findById(req.params.id).select("-password")
-    if(!user)
-        return res.status(403).json({message:"User not Found "})
-    res.json(user)
+    const user = await User.findById(req.params.id).select("-password");
+    if (!user) return res.status(403).json({ message: "User not Found " });
+    res.json(user);
   } catch (error) {
     return res
       .status(500)
@@ -63,9 +61,26 @@ const getUserById = async (req, res) => {
 };
 
 // @desc    Delete User (Admin Only)
-// @route   api/auth/
+// @route   DELETE api/users/:id
 // @access  PRIVATE (admin Only)
+const deleteUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
 
+    // Remove this user from any tasks they were assigned to
+    await Task.updateMany(
+      { assignedTo: user._id },
+      { $pull: { assignedTo: user._id } },
+    );
 
+    await User.deleteOne({ _id: user._id });
+    res.json({ message: "User deleted successfully" });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Failed to delete user", error: error.message });
+  }
+};
 
-module.exports = { getUsers, getUserById };
+module.exports = { getUsers, getUserById, deleteUser };
