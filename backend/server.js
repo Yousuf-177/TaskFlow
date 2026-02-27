@@ -40,5 +40,5 @@ app.use("/api/report", reportRoutes);
 
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () =>
-  console.log(`Server is running on https://localhost:${PORT}`),
+  console.log(`Server is running`),
 );
